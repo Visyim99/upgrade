@@ -13,7 +13,7 @@
 
 /*Route::get('/', function()
 {
-	return View::make('home');
+    return View::make('home');
 });*/
 
 Route::get('/', 'AppController@index');
@@ -25,12 +25,10 @@ Route::get('/ppfinalizetemplate', 'AppController@finalizeTemplate');*/
 Route::get('/ppdonetemplate', 'AppController@doneTemplate');
 //Route::get('/pprealestatechangestemplate', 'AppController@realEstateChangesTemplate');
 
-
 /*Route::any('/admin', 'AppController@adminLogin');
 Route::any('/admin/dashboard', 'AppController@adminDashboard');
 Route::any('/admin/report', 'AppController@adminReport');
 Route::any('/admin/confirm', 'AppController@confirm');*/
-
 
 Route::post('/api/user/login', 'ApiUserController@login');
 Route::post('/api/user/getUser', 'ApiUserController@getUser');
@@ -51,13 +49,13 @@ Route::post('/api/user/logChanges', 'ApiUserController@logChanges');
 Route::any('/api/admin/updateDb', 'ApiUserController@updateDb');
 
 // Can use this route to create a new password
-Route::any('/createPw', function() {
+Route::any('/createPw', function () {
     echo 'test';
     //echo hash('sha256', '');
 });
 
 // route for testing bits of code
-Route::any('/test', function() {
+Route::any('/test', function () {
     /*$zip = new ZipArchive();
     $filename = storage_path() . "/test.zip";
 
@@ -75,17 +73,17 @@ Route::any('/test', function() {
         echo "failure man";
     }*/
     $zip = new ZipArchive();
-    
-    $res = $zip->open(storage_path() . '\asdf.zip', ZIPARCHIVE::CREATE | ZIPARCHIVE::OVERWRITE);
-    if ($res === TRUE) {
-        $zip->addFile(storage_path() . '\\test.txt', 'test.txt');
+
+    $res = $zip->open(storage_path().'\asdf.zip', ZIPARCHIVE::CREATE | ZIPARCHIVE::OVERWRITE);
+    if ($res === true) {
+        $zip->addFile(storage_path().'\\test.txt', 'test.txt');
         //$zip->filename = storage_path() . '\asdf.zip';
         echo $zip->filename;
         $zip->close();
-        echo 'ok ' . $zip->filename . ' endfilename';
-        echo 'created: ' . storage_path() . '\\test.txt';
+        echo 'ok '.$zip->filename.' endfilename';
+        echo 'created: '.storage_path().'\\test.txt';
     } else {
-        
+
         echo 'failed ';
     }
     /*$data = Array();
@@ -104,4 +102,3 @@ Route::any('/test', function() {
         $message->from('d.britt@villagis.com', 'Dan2');
     });*/
 });
-

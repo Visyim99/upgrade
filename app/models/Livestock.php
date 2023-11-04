@@ -1,17 +1,15 @@
 <?php
 
+class Livestock extends Eloquent
+{
+    /**
+     * The database table used by the model.
+     *
+     * @var string
+     */
+    protected $table = 'weblivestocktypes';
 
-class Livestock extends Eloquent {
+    protected $primaryKey = 'Code';
 
-	/**
-	 * The database table used by the model.
-	 *
-	 * @var string
-	 */
-	protected $table = 'weblivestocktypes';
-
-	protected $primaryKey = 'Code';
-        
-        public $timestamps = false;
-
+    public $timestamps = false;
 }
