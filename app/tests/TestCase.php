@@ -1,5 +1,7 @@
 <?php
 
+use Symfony\Component\HttpKernel\HttpKernelInterface;
+
 class TestCase extends Illuminate\Foundation\Testing\TestCase
 {
     /**
@@ -7,7 +9,7 @@ class TestCase extends Illuminate\Foundation\Testing\TestCase
      *
      * @return Symfony\Component\HttpKernel\HttpKernelInterface
      */
-    public function createApplication()
+    public function createApplication(): HttpKernelInterface
     {
         $unitTesting = true;
 

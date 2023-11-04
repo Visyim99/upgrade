@@ -34,7 +34,7 @@ class User extends Eloquent implements UserInterface, RemindableInterface
      *
      * @return string
      */
-    public function getAuthPassword()
+    public function getAuthPassword(): string
     {
         return $this->password;
     }
@@ -44,7 +44,7 @@ class User extends Eloquent implements UserInterface, RemindableInterface
      *
      * @return string
      */
-    public function getReminderEmail()
+    public function getReminderEmail(): string
     {
         return $this->email;
     }
