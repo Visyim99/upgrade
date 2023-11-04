@@ -1,0 +1,100 @@
+<?php
+
+class AppController extends BaseController {
+    
+        /**
+         * Called on intial load of the app
+         * @return type
+         */
+	/*public function index()
+	{
+            // Some basic data that all pages need
+            $data['title'] = 'Cole County - Online Personal Property Declaration Filing';
+            $data['canonicalUrl'] = null;
+            $data['metaDescription'] = "Cole County - Online Personal Property Declaration Filing";
+            
+            $month = date('m');
+            $day = date('d');
+            $browser = get_browser($_SERVER['HTTP_USER_AGENT']);
+            
+            if ($browser->browser == "IE" && ($browser->majorver < 8)) {
+                return Response::view('oldbrowser', $data);
+            } else {
+                $maintMode = Setting::find('maintenance_mode');
+                // If it's March 2nd or after, don't display the site
+                if ((($month == 3 && $day >= 2) || $month >= 3) && (Input::get('adminbypass') != '210') ) {
+                    $data['message'] = 'Online personal property declaration filing is not available at this time. Please visit again between Jan 1st - March 1st';
+                    return Response::view('notavailable', $data);
+                } else if ($maintMode->value == 1 && (Input::get('adminbypass') != '210')) {
+                    // Maintenance mode is set, display a message
+                    $data['message'] = 'The system is currently undergoing maintenance. Please try again later. Thank you.';
+                    return Response::view('notavailable', $data);
+                } else {
+                    // Show the site
+                    return Response::view('app', $data);
+                }
+            }
+	}*/
+    
+        public function index()
+	{
+            // Some basic data that all pages need
+            $data['countyname'] = Config::get('app.countyname');
+            $data['countyPhone'] = Config::get('app.countyPhone');
+            $data['acctTypesCaveat'] = Config::get('app.accttypescaveat');
+            $data['title'] = $data['countyname'] . ' - Online Personal Property Declaration Filing';
+            $data['canonicalUrl'] = null;
+            $data['metaDescription'] = "Demo County - Online Personal Property Declaration Filing";
+            $data['usevehicledropdowns'] = Config::get('app.usevehicledropdowns');
+            $data['showCurrentLivestock'] = Config::get('app.showCurrentLivestock');
+            $data['showCurrentHeavyEquip'] = Config::get('app.showCurrentHeavyEquip');
+            $data['allowAddLivestock'] = Config::get('app.allowAddLivestock');
+            $data['allowAddHeavyEquip'] = Config::get('app.allowAddHeavyEquip');
+            $data['showRealEstateChangesSection'] = Config::get('app.showRealEstateChangesSection');            
+            
+			$month = date('m');
+            $day = date('d');
+            $browser = get_browser($_SERVER['HTTP_USER_AGENT']);
+            
+            if ($browser->browser == "IE" && ($browser->majorver < 8)) {
+                return Response::view('oldbrowser', $data);
+            } else {
+                $maintMode = Setting::find('maintenance_mode')->value;
+                // If it's March 2nd or after, don't display the site
+                if ((($month == 12 && $day >= 31) || $month > 12) && (Input::get('adminbypass') != Config::get('app.adminBypassKey')) ) {
+				//Michael, Tyler and Steve made the change on line 66 on 10/21/2021 @10:10am
+				//per the ticket 13765 request from Ronda  
+				//if ((($month <3 && $month>9) || ($month == 10 && $day >= 31) )) && (Input::get('adminbypass') != Config::get('app.adminBypassKey')) ) {	
+                    $data['message'] = 'Online personal property declaration filing is not available at this time. Please visit again between NOW 1st - March 1st';
+                    return Response::view('notavailable', $data);
+                } else if ($maintMode && (Input::get('adminbypass') != Config::get('app.adminBypassKey'))) {
+                    // Maintenance mode is set, display a message
+                    $data['message'] = 'The system is currently undergoing maintenance. Please try again later. Thank you.';
+                    return Response::view('notavailable', $data);
+                } else {
+                    // Show the site
+                    return Response::view('app', $data);
+                }
+            }
+	}
+        
+        /* The following are simple functions that return the different pages of the app */
+        public function loginTemplate()
+	{
+            $data = Array();
+            $data['accttypescaveat'] = Config::get('app.accttypescaveat');
+            return Response::view('applogin', $data);
+	}
+        
+        public function infotemplate()
+	{
+            $data = Array();
+            $data['countyname'] = Config::get('app.countyname');
+            return Response::view('info', $data);
+	}
+        
+        public function doneTemplate() {
+            $data = Array();
+            return Response::view('appdone', $data);
+        }
+}
