@@ -1,21 +1,20 @@
 <?php
 
+class PersonalProperty extends Eloquent
+{
+    /**
+     * The database table used by the model.
+     *
+     * @var string
+     */
+    protected $table = 'webitems';
 
-class PersonalProperty extends Eloquent {
+    protected $primaryKey = 'VehicleID';
 
-	/**
-	 * The database table used by the model.
-	 *
-	 * @var string
-	 */
-	protected $table = 'webitems';
+    public $timestamps = false;
 
-	protected $primaryKey = 'VehicleID';
-        
-        public $timestamps = false;
-        
-        public function type() {
-            return $this->hasOne('PpTypes', 'VehicleType', 'VehicleType');
-        }
-
+    public function type()
+    {
+        return $this->hasOne('PpTypes', 'VehicleType', 'VehicleType');
+    }
 }

@@ -1,17 +1,15 @@
 <?php
 
+class MobileHome extends Eloquent
+{
+    /**
+     * The database table used by the model.
+     *
+     * @var string
+     */
+    protected $table = 'webmobiles';
 
-class MobileHome extends Eloquent {
+    protected $primaryKey = 'MobileID';
 
-	/**
-	 * The database table used by the model.
-	 *
-	 * @var string
-	 */
-	protected $table = 'webmobiles';
-
-	protected $primaryKey = 'MobileID';
-        
-        public $timestamps = false;
-
+    public $timestamps = false;
 }

@@ -1,17 +1,15 @@
 <?php
 
+class HvyEquipTypes extends Eloquent
+{
+    /**
+     * The database table used by the model.
+     *
+     * @var string
+     */
+    protected $table = 'webhvytypes';
 
-class HvyEquipTypes extends Eloquent {
+    protected $primaryKey = 'Code';
 
-	/**
-	 * The database table used by the model.
-	 *
-	 * @var string
-	 */
-	protected $table = 'webhvytypes';
-
-	protected $primaryKey = 'Code';
-        
-        public $timestamps = false;
-
+    public $timestamps = false;
 }

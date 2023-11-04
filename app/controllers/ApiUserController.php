@@ -1,13 +1,14 @@
 <?php
 
-class ApiUserController extends BaseController {
-
+class ApiUserController extends BaseController
+{
     /**
      * Expects input of a json object with 2 properties: OwnerID, PIN
-     * 
+     *
      * @return type
      */
-    public function login() {
+    public function login()
+    {
         $cookie = null;
         $user = null;
         $user = null;
@@ -16,12 +17,11 @@ class ApiUserController extends BaseController {
         $alreadyCompleted = false;
         $isBusinessOrFarmAcct = false;
 
-
         // Make sure credentials variable exists
         if (Input::has('loginInfo')) {
             $credentials = Input::get('loginInfo');
             // See if this user has attempted to log in before
-            $attempt = UserAttempt::whereRaw('ip = ? AND OwnerID = ?', Array($_SERVER['REMOTE_ADDR'], $credentials['OwnerID']))->first();
+            $attempt = UserAttempt::whereRaw('ip = ? AND OwnerID = ?', [$_SERVER['REMOTE_ADDR'], $credentials['OwnerID']])->first();
             $curDate = new DateTime();
 
             // If they have attempted to log in before
@@ -44,21 +44,21 @@ class ApiUserController extends BaseController {
                 $attempt->attempts = 0;
                 $attempt->last_attempt_date = $curDate->format('Y-m-d');
             }
-            
+
             // If the amount of attempts for this person is >= max attempts allowed
             if ($attempt->attempts >= Config::get('app.maxattempts')) {
                 // Flag as too many attempts
                 $tooManyAttempts = true;
             } else {
                 // Try logging in
-                $user = PublicUser::whereRaw('`OwnerId` = ? AND `PIN` = ?', array($credentials['OwnerID'], $credentials['PIN']))->get()->first();
-                
+                $user = PublicUser::whereRaw('`OwnerId` = ? AND `PIN` = ?', [$credentials['OwnerID'], $credentials['PIN']])->get()->first();
+
                 if ($user) {
-                    $changeRecordCount = Change::whereRaw('`OwnerID` = ?', Array($user->OwnerID))->count();
-                    
+                    $changeRecordCount = Change::whereRaw('`OwnerID` = ?', [$user->OwnerID])->count();
+
                     if ($user->FileCode != '0') {
                         $isBusinessOrFarmAcct = true;
-                    } else if ($changeRecordCount > 0 || $user->ReturnDate) {
+                    } elseif ($changeRecordCount > 0 || $user->ReturnDate) {
                         // If the user has records in the change table, they've
                         // already filled out the online form
                         // If the user's record has a ReturnDate, they've already
@@ -78,42 +78,42 @@ class ApiUserController extends BaseController {
             // Save attempt record to database
             $browser = get_browser($_SERVER['HTTP_USER_AGENT']);
 
-            $attempt->browser = $browser->browser . ' v' . $browser->version . ' | ' . $_SERVER['HTTP_USER_AGENT'];
+            $attempt->browser = $browser->browser.' v'.$browser->version.' | '.$_SERVER['HTTP_USER_AGENT'];
             $attempt->save();
         }
-        
-        
-        
+
         if ($cookie) {
             // Login was successful if cookie was created
             return Response::json('')->withCookie($cookie);
-        } else if ($tooManyAttempts) {
-            return Response::json(Array('attemptMsg' => 'Too many attempts today, please try again tomorrow'), 401);
-        } else if ($isBusinessOrFarmAcct) {
+        } elseif ($tooManyAttempts) {
+            return Response::json(['attemptMsg' => 'Too many attempts today, please try again tomorrow'], 401);
+        } elseif ($isBusinessOrFarmAcct) {
             return Response::json('', 402);
-        } else if ($alreadyCompleted) {
+        } elseif ($alreadyCompleted) {
             return Response::json('', 400);
         } else {
-            return Response::json(Array('attemptMsg' => (Config::get('app.maxattempts') - $attempt->attempts) . ' attempts left today'), 403);
+            return Response::json(['attemptMsg' => (Config::get('app.maxattempts') - $attempt->attempts).' attempts left today'], 403);
         }
     }
-    
+
     /**
      * Retrieves all details for the logged in user account
+     *
      * @return type
      */
-    public function getUser() {
+    public function getUser()
+    {
         // If cookie exists
         if (Cookie::has(Config::get('app.cookie.user'))) {
             $userId = Cookie::get(Config::get('app.cookie.user'));
             $user = PublicUser::find($userId);
             $vehicleItems = PublicUser::find($userId)->ppItems->toArray();
             $mobileItems = PublicUser::find($userId)->ppMobiles->toArray();
-            $livestockItems = Array();
+            $livestockItems = [];
             if (Config::get('app.showCurrentLivestock')) {
                 $livestockItems = PublicUser::find($userId)->ppLivestock->toArray();
             }
-            $hvyEquipItems = Array();
+            $hvyEquipItems = [];
             if (Config::get('app.showCurrentHeavyEquip')) {
                 $hvyEquipItems = PublicUser::find($userId)->ppHvyEquip->toArray();
             }
@@ -122,27 +122,27 @@ class ApiUserController extends BaseController {
             $fullUser = $user->toArray();
             $allUserPpItems = array_merge($vehicleItems, $mobileItems, $hvyEquipItems, $livestockItems);
             //$newUserPpItems = Array();
-            $userPpItemsVehicle = Array();
-            $userPpItemsMobile = Array();
-            $userPPItemsHeavyEquip = Array();
-            $userPPItemsLivestock = Array();
-            foreach ($allUserPpItems as $item) {                
+            $userPpItemsVehicle = [];
+            $userPpItemsMobile = [];
+            $userPPItemsHeavyEquip = [];
+            $userPPItemsLivestock = [];
+            foreach ($allUserPpItems as $item) {
                 if (isset($item['MobileID'])) {
                     // Item is mobile home
                     $type = 'Mobile Home';
                     $mobileAc = $item['MobileAC'] ? 'YES' : 'NO';
                     //$desc =  . ' ' . $item['MobileMake'] . ' (' . $item['MobileWidth'] . '\' W  ' . $item['MobileLength'] . '\' L  AC: ' . $mobileAc . ')';
-                    
-                    $userPpItemsMobile[] = Array(
+
+                    $userPpItemsMobile[] = [
                         'year' => $item['MobileYear'],
                         'ac' => $mobileAc,
                         'width' => $item['MobileWidth'],
                         'length' => $item['MobileLength'],
                         'make' => $item['MobileMake'],
                         'type' => $type,
-                        'MobileID' => isset($item['MobileID']) ? $item['MobileID'] : null
-                    );
-                } else if (isset($item['VehicleID'])) {
+                        'MobileID' => isset($item['MobileID']) ? $item['MobileID'] : null,
+                    ];
+                } elseif (isset($item['VehicleID'])) {
                     // Item is a vehicle
                     // Get type record for this personal property item
                     $type = '';
@@ -154,17 +154,17 @@ class ApiUserController extends BaseController {
                     }
                     if ($item['VIN'] == null || $item['VIN'] == '') {
                         $needsVin = true;
-                    } 
-                    
-                    $userPpItemsVehicle[] = Array(
+                    }
+
+                    $userPpItemsVehicle[] = [
                         'year' => $item['VehicleYear'],
                         'desc' => $item['VehicleDescription'],
                         'needsVin' => $needsVin,
                         'vin' => $item['VIN'],
                         'type' => $type,
-                        'VehicleID' => isset($item['VehicleID']) ? $item['VehicleID'] : null
-                    );
-                } else if (isset($item['HvyEquipID'])) {
+                        'VehicleID' => isset($item['VehicleID']) ? $item['VehicleID'] : null,
+                    ];
+                } elseif (isset($item['HvyEquipID'])) {
                     // Item is heavy equipment
                     // Get type record for this personal property item
                     $type = '';
@@ -176,19 +176,19 @@ class ApiUserController extends BaseController {
                     }
                     if ($item['VIN'] == null || $item['VIN'] == '') {
                         $needsVin = true;
-                    } 
-                    
-                    $userPPItemsHeavyEquip[] = Array(
+                    }
+
+                    $userPPItemsHeavyEquip[] = [
                         'year' => $item['Year'],
                         'make' => $item['Make'],
                         'model' => $item['Model'],
                         'needsVin' => $needsVin,
                         'vin' => $item['VIN'],
                         'type' => $type,
-                        'HvyEquipID' => isset($item['HvyEquipID']) ? $item['HvyEquipID'] : null
-                    );
-                    
-                } else if (isset($item['OtherID'])) {
+                        'HvyEquipID' => isset($item['HvyEquipID']) ? $item['HvyEquipID'] : null,
+                    ];
+
+                } elseif (isset($item['OtherID'])) {
                     // This is livestock... does the field name need to be LivestockID? Will there be other tables with OtherID?
                     // Get type record for this personal property item
                     $type = '';
@@ -197,15 +197,15 @@ class ApiUserController extends BaseController {
                         // If type record was found, set the description to $type
                         $type = $typeObj->Description;
                     }
-                    
-                    $userPPItemsLivestock[] = Array(
+
+                    $userPPItemsLivestock[] = [
                         'type' => $type,
                         'qty' => $item['OtherNumber'],
                         'origQty' => $item['OtherNumber'],
-                        'OtherID' => isset($item['OtherID']) ? $item['OtherID'] : null
-                    );
+                        'OtherID' => isset($item['OtherID']) ? $item['OtherID'] : null,
+                    ];
                 }
-                
+
                 // Add to array of personal property items
                 // This creates an array of all owned personal property in a common format
                 /*$newUserPpItems[] = Array(
@@ -222,7 +222,7 @@ class ApiUserController extends BaseController {
             $fullUser['ppItems']['MOBILE'] = $userPpItemsMobile;
             $fullUser['ppItems']['HVYEQUIP'] = $userPPItemsHeavyEquip;
             $fullUser['ppItems']['LIVESTOCK'] = $userPPItemsLivestock;
-            
+
             // Return the $fullUser array
             return Response::json($fullUser);
         } else {
@@ -231,134 +231,148 @@ class ApiUserController extends BaseController {
         }
     }
 
-    public function isLoggedIn() {
+    public function isLoggedIn()
+    {
         if (Cookie::has(Config::get('app.cookie.user'))) {
             return Response::json('');
         } else {
             return Response::json('', 403);
         }
     }
-    
-    public function logout() {
+
+    public function logout()
+    {
         $cookie = Cookie::forget(Config::get('app.cookie.user'));
+
         return Response::json('')->withCookie($cookie);
     }
 
     /**
      * Returns array of vehicle item types (Truck, SUV, Airplane, etc
+     *
      * @return type
      */
-    public function getVehicleTypes() {
-        $newPpTypesArr = Array();
+    public function getVehicleTypes()
+    {
+        $newPpTypesArr = [];
 
         // Gets all personal property types in the types table
         $ppTypes = PpTypes::all();
 
         foreach ($ppTypes as $ppType) {
-            $newPpTypesArr[] = Array(
+            $newPpTypesArr[] = [
                 'id' => $ppType['VehicleType'],
-                'desc' => $ppType['Description']
-            );
+                'desc' => $ppType['Description'],
+            ];
         }
 
         return Response::json($newPpTypesArr);
     }
-    
+
     /**
      * Returns array of livestock item types (Horse, Goat, etc
+     *
      * @return type
      */
-    public function getLivestockTypes() {
-        $newPpTypesArr = Array();
+    public function getLivestockTypes()
+    {
+        $newPpTypesArr = [];
 
         $allLivestockPp = Livestock::all()->toArray();
         foreach ($allLivestockPp as $livestockType) {
-            $newPpTypesArr[] = Array(
+            $newPpTypesArr[] = [
                 'id' => $livestockType['Code'],
-                'desc' => $livestockType['Description']
-            );
+                'desc' => $livestockType['Description'],
+            ];
         }
-
 
         return Response::json($newPpTypesArr);
     }
-    
+
     /**
-     * Returns array of heavy equipment item types 
+     * Returns array of heavy equipment item types
+     *
      * @return type
      */
-    public function getHvyEquipTypes() {
-        $newPpTypesArr = Array();
+    public function getHvyEquipTypes()
+    {
+        $newPpTypesArr = [];
 
         $hvyEquipTypes = HvyEquipTypes::all()->toArray();
         foreach ($hvyEquipTypes as $hvyEquipType) {
-            $newPpTypesArr[] = Array(
+            $newPpTypesArr[] = [
                 'id' => $hvyEquipType['Code'],
-                'desc' => $hvyEquipType['Description']
-            );
+                'desc' => $hvyEquipType['Description'],
+            ];
         }
-
 
         return Response::json($newPpTypesArr);
     }
 
     /**
      * Get array of vehicle makes by vehicle type
+     *
      * @return type
      */
-    public function getVehicleMakesByType() {
-        $makes = Array();
+    public function getVehicleMakesByType()
+    {
+        $makes = [];
         if (Input::has('vehicleTypeId')) {
             $vehicleTypeId = Input::get('vehicleTypeId');
-            $makes = AllPersonalProperty::whereRaw('`VehicleType` = ?', Array($vehicleTypeId))->groupBy('STMAKE')->orderBy('STMAKE')->get(array('STMAKE'));
+            $makes = AllPersonalProperty::whereRaw('`VehicleType` = ?', [$vehicleTypeId])->groupBy('STMAKE')->orderBy('STMAKE')->get(['STMAKE']);
         }
 
         // gzip response to reduce size
         //ob_start("ob_gzhandler");
-        
+
         // Return merged arrays
         return Response::json($makes);
     }
-    
+
     /**
      * Get array of vehicle models by vehicle make
+     *
      * @return type
      */
-    public function getVehicleModelsByMake() {
-        $models = Array();
+    public function getVehicleModelsByMake()
+    {
+        $models = [];
         if (Input::has('vehicleMake')) {
             $vehicleMake = Input::get('vehicleMake');
-            $models = AllPersonalProperty::whereRaw('`STMAKE` = ?', Array($vehicleMake))->groupBy('STMODEL')->orderBy('STMODEL')->get(array('STMODEL'));
+            $models = AllPersonalProperty::whereRaw('`STMAKE` = ?', [$vehicleMake])->groupBy('STMODEL')->orderBy('STMODEL')->get(['STMODEL']);
         }
 
         // gzip response to reduce size
         //ob_start("ob_gzhandler");
-        
+
         // Return merged arrays
         return Response::json($models);
     }
-	/**
+
+    /**
      * Get array of vehicle body types by vehicle make and model
+     *
      * @return type
      */
-    public function getVehicleBodysByModel() {
-        $bodys = Array();
+    public function getVehicleBodysByModel()
+    {
+        $bodys = [];
         if (Input::has('vehicleModel')) {
             $vehicleModel = Input::get('vehicleModel');
-            $bodys = AllPersonalProperty::whereRaw('`STMODEL` = ?', Array($vehicleModel))->groupBy('STBODY')->orderBy('STBODY')->get(array('STBODY'));
+            $bodys = AllPersonalProperty::whereRaw('`STMODEL` = ?', [$vehicleModel])->groupBy('STBODY')->orderBy('STBODY')->get(['STBODY']);
         }
 
         // gzip response to reduce size
         //ob_start("ob_gzhandler");
-        
+
         // Return merged arrays
         return Response::json($bodys);
     }
-	
 
-    public function logChanges() {
+    public function logChanges()
+    {
         $cookie = null;
-        
+
         // Only log changes if user is logged in
         if (Cookie::has(Config::get('app.cookie.user'))) {
             // Make sure request has the proper inputs
@@ -369,7 +383,7 @@ class ApiUserController extends BaseController {
                 $email = Input::has('email') ? Input::get('email') : '';
                 $changeObj = null;
                 $ownerId = '';
-                
+
                 // For each change in the array, create a change record and save it
                 foreach ($changes as $change) {
                     $ownerId = $change['OwnerID'];
@@ -388,22 +402,23 @@ class ApiUserController extends BaseController {
                         $changeObj->save();
                     }
                 }
-                
+
                 // Send email to user if email isn't blank
                 if ($email) {
-                    $emailData = Array();
+                    $emailData = [];
                     $emailData['countyName'] = Config::get('app.countyname');
                     $emailData['acctNum'] = $ownerId;
                     $emailData['date'] = date('Y-m-d');
-                    Mail::send('emails.thankyou', $emailData, function($message) use ($email, $agreementSignature) {
-                        $message->subject('DO NOT REPLY - ' . Config::get('app.countyname') . ' Personal Property Assessment Completed');
+                    Mail::send('emails.thankyou', $emailData, function ($message) use ($email, $agreementSignature) {
+                        $message->subject('DO NOT REPLY - '.Config::get('app.countyname').' Personal Property Assessment Completed');
                         $message->to($email, $agreementSignature);
-                        $message->from(Config::get('app.emailFromAddr'), Config::get('app.emailSubjPrefix') . ' - ' . Config::get('app.countyname'));
+                        $message->from(Config::get('app.emailFromAddr'), Config::get('app.emailSubjPrefix').' - '.Config::get('app.countyname'));
                     });
                 }
-                
+
                 // Log user out
                 $cookie = Cookie::forget(Config::get('app.cookie.user'));
+
                 return Response::json('')->withCookie($cookie);
             } else {
                 return Response::json('', 401);
@@ -413,7 +428,8 @@ class ApiUserController extends BaseController {
         }
     }
 
-    public function updateDb() {
+    public function updateDb()
+    {
         if (Input::has('key') && (Input::get('key') == Config::get('app.updateDbKey'))) {
             // Set site to maintenance mode so no one can file while this is going on
             $maintMode = Setting::find('maintenance_mode');
@@ -424,22 +440,22 @@ class ApiUserController extends BaseController {
             $result = '';
 
             // The local zip file of the web table backup
-            $local_webtable_zip_file = storage_path() . '\\' . Config::get('app.webTablesFile') . '.sql.zip';
+            $local_webtable_zip_file = storage_path().'\\'.Config::get('app.webTablesFile').'.sql.zip';
             // The local sql file of the web table backup
-            $local_webtable_sql_file = storage_path() . '\\' . Config::get('app.webTablesFile') . '.sql';
+            $local_webtable_sql_file = storage_path().'\\'.Config::get('app.webTablesFile').'.sql';
             // ftp path to web table backup zip
             //$ftp_webtable_file = Config::get('app.ftp.remoteDir') . Config::get('app.webTablesFile') . '.sql.zip';
-            $ftp_webtable_file = Config::get('app.webTablesFile') . '.sql.zip';
+            $ftp_webtable_file = Config::get('app.webTablesFile').'.sql.zip';
 
             // local web changes backup zip file
-            $local_changes_zip_file = storage_path() . '\\' . Config::get('app.webchangesFileName') . '.sql.zip';
+            $local_changes_zip_file = storage_path().'\\'.Config::get('app.webchangesFileName').'.sql.zip';
             // local web changes backup sql file
-            $local_changes_sql_file = storage_path() . '\\' . Config::get('app.webchangesFileName') . '.sql';
+            $local_changes_sql_file = storage_path().'\\'.Config::get('app.webchangesFileName').'.sql';
             // Ftp path to web changes backup zip file
             //$ftp_changes_file = Config::get('app.ftp.remoteDir') . Config::get('app.webchangesFileName') . '.sql.zip';
             //$ftp_changes_file = Config::get('app.webchangesFileName') . '.sql.zip';
 
-            $winscpCommandFilePath = storage_path() . '\\winscp\\' . Config::get('app.winscpScript');
+            $winscpCommandFilePath = storage_path().'\\winscp\\'.Config::get('app.winscpScript');
 
             // Get web tables from rsync
             if ($success) {
@@ -449,26 +465,26 @@ class ApiUserController extends BaseController {
                     // If file creation was successful, write commands to it
                     $winscpCommands = '';
                     // Automatically abort script on errors
-                    $winscpCommands .= 'option batch abort' . "\r\n"; 
+                    $winscpCommands .= 'option batch abort'."\r\n";
                     // Disable overwrite confirmations that conflict with the previous
-                    $winscpCommands .= 'option confirm off' . "\r\n"; 
+                    $winscpCommands .= 'option confirm off'."\r\n";
                     // Connect using password
-                    $winscpCommands .= 'open sftp://' . Config::get('app.ftp.user') . ':' . Config::get('app.ftp.pass') . '@' . Config::get('app.ftp.host') . ' -hostkey="' . Config::get('app.ftp.hostKey') . '"' . "\r\n"; 
+                    $winscpCommands .= 'open sftp://'.Config::get('app.ftp.user').':'.Config::get('app.ftp.pass').'@'.Config::get('app.ftp.host').' -hostkey="'.Config::get('app.ftp.hostKey').'"'."\r\n";
                     // Change directory
-                    $winscpCommands .= 'cd ' . Config::get('app.ftp.remoteDir') . "\r\n"; 
+                    $winscpCommands .= 'cd '.Config::get('app.ftp.remoteDir')."\r\n";
                     // Get web table file
-                    $winscpCommands .= 'get ' . $ftp_webtable_file . ' ' . storage_path() . '\\' . "\r\n"; 
+                    $winscpCommands .= 'get '.$ftp_webtable_file.' '.storage_path().'\\'."\r\n";
                     // Close connection
-                    $winscpCommands .= 'close' . "\r\n"; 
+                    $winscpCommands .= 'close'."\r\n";
                     // exit winscp
-                    $winscpCommands .= 'exit' . "\r\n"; 
+                    $winscpCommands .= 'exit'."\r\n";
                     fwrite($winscpCommandFile, $winscpCommands);
                     fclose($winscpCommandFile);
 
                     // Run winscp using the command file we created
                     $exitCode = 0;
                     //die(storage_path());
-                    system(storage_path() . '\\winscp\\winscp.com /script=' . $winscpCommandFilePath, $exitcode);
+                    system(storage_path().'\\winscp\\winscp.com /script='.$winscpCommandFilePath, $exitcode);
                     // Delete winscp commands file
                     unlink($winscpCommandFilePath);
                     if ($exitCode != 0) {
@@ -479,7 +495,6 @@ class ApiUserController extends BaseController {
                     $result = 'Could not create winscp command file';
                     $success = false;
                 }
-
 
             }
 
@@ -499,7 +514,7 @@ class ApiUserController extends BaseController {
             // Restore from web tables sql file
             if ($success) {
                 $returnCode = 0;
-                system('"' . Config::get('app.mysql.bindir') . '\mysql.exe" --user=' . Config::get('database.connections.mysql.username') . ' --password=' . Config::get('database.connections.mysql.password') . ' ' . Config::get('database.connections.mysql.database') . ' < "' . $local_webtable_sql_file . '"', $returnCode);
+                system('"'.Config::get('app.mysql.bindir').'\mysql.exe" --user='.Config::get('database.connections.mysql.username').' --password='.Config::get('database.connections.mysql.password').' '.Config::get('database.connections.mysql.database').' < "'.$local_webtable_sql_file.'"', $returnCode);
 
                 if ($returnCode != 0) {
                     $result = 'Failed to restore webtables from .sql file';
@@ -511,9 +526,9 @@ class ApiUserController extends BaseController {
             // on records whos corresponding Owner record has a return date
             if ($success) {
                 // Get all change records where done is false
-                $changes = Change::whereRaw('done <> ?', Array(1))->get();
+                $changes = Change::whereRaw('done <> ?', [1])->get();
                 // Iterate through change records
-                $changes->each(function($changeModel) {
+                $changes->each(function ($changeModel) {
                     // Get user that change belongs to
                     $user = PublicUser::where('OwnerID', '=', $changeModel->OwnerID)->first();
                     // If the return date is set, then the change has been updated in the system
@@ -528,7 +543,7 @@ class ApiUserController extends BaseController {
             // Use mysqldump.exe to create backup of changes table
             if ($success) {
                 $returnCode = 0;
-                system('"' . Config::get('app.mysql.bindir') . '\mysqldump.exe" --user=' . Config::get('database.connections.mysql.username') . ' --password=' . Config::get('database.connections.mysql.password') . ' --opt ' . Config::get('database.connections.mysql.database') . ' webchanges > "' . $local_changes_sql_file . '"', $returnCode);
+                system('"'.Config::get('app.mysql.bindir').'\mysqldump.exe" --user='.Config::get('database.connections.mysql.username').' --password='.Config::get('database.connections.mysql.password').' --opt '.Config::get('database.connections.mysql.database').' webchanges > "'.$local_changes_sql_file.'"', $returnCode);
                 if ($returnCode != 0) {
                     $result = 'Failed to create changes table dump on web server';
                     $success = false;
@@ -540,15 +555,14 @@ class ApiUserController extends BaseController {
                 $zip = new ZipArchive();
 
                 $res = $zip->open($local_changes_zip_file, ZIPARCHIVE::CREATE | ZIPARCHIVE::OVERWRITE);
-                if ($res === TRUE) {
-                    $zip->addFile($local_changes_sql_file, Config::get('app.webchangesFileName') . '.sql');
+                if ($res === true) {
+                    $zip->addFile($local_changes_sql_file, Config::get('app.webchangesFileName').'.sql');
                     $zip->close();
                 } else {
                     $result = 'Error zipping web changes backup sql file';
                     $success = false;
                 }
             }
-
 
             // Upload the zipped changes file to ftp server
             if ($success) {
@@ -558,25 +572,25 @@ class ApiUserController extends BaseController {
                     // If file creation was successful, write commands to it
                     $winscpCommands = '';
                     // Automatically abort script on errors
-                    $winscpCommands .= 'option batch abort' . "\r\n"; 
+                    $winscpCommands .= 'option batch abort'."\r\n";
                     // Disable overwrite confirmations that conflict with the previous
-                    $winscpCommands .= 'option confirm off' . "\r\n";
+                    $winscpCommands .= 'option confirm off'."\r\n";
                     // Connect using password
-                    $winscpCommands .= 'open sftp://' . Config::get('app.ftp.user') . ':' . Config::get('app.ftp.pass') . '@' . Config::get('app.ftp.host') . ' -hostkey="' . Config::get('app.ftp.hostKey') . '"' . "\r\n"; 
+                    $winscpCommands .= 'open sftp://'.Config::get('app.ftp.user').':'.Config::get('app.ftp.pass').'@'.Config::get('app.ftp.host').' -hostkey="'.Config::get('app.ftp.hostKey').'"'."\r\n";
                     // Change directory
-                    $winscpCommands .= 'cd ' . Config::get('app.ftp.remoteDir') . "\r\n";
+                    $winscpCommands .= 'cd '.Config::get('app.ftp.remoteDir')."\r\n";
                     // Get web table file
-                    $winscpCommands .= 'put ' . $local_changes_zip_file . "\r\n";
+                    $winscpCommands .= 'put '.$local_changes_zip_file."\r\n";
                     // Close connection
-                    $winscpCommands .= 'close' . "\r\n";
+                    $winscpCommands .= 'close'."\r\n";
                     // exit winscp
-                    $winscpCommands .= 'exit' . "\r\n";
+                    $winscpCommands .= 'exit'."\r\n";
                     fwrite($winscpCommandFile, $winscpCommands);
                     fclose($winscpCommandFile);
 
                     // Run winscp using the command file we created
                     $exitCode = 0;
-                    system(storage_path() . '\\winscp\\winscp.com /script=' . $winscpCommandFilePath, $exitCode);
+                    system(storage_path().'\\winscp\\winscp.com /script='.$winscpCommandFilePath, $exitCode);
                     // Delete winscp commands file
                     unlink($winscpCommandFilePath);
                     if ($exitCode != 0) {
@@ -597,14 +611,13 @@ class ApiUserController extends BaseController {
             if ($success) {
                 $result = 'Web server database updated successfully and changes database uploaded to ftp server';
             } else {
-                return Response::json($result,500);
+                return Response::json($result, 500);
             }
 
             // return result string
             return $result;
         } else {
-            return Response::json('Not authorized to run this web service method',401);
+            return Response::json('Not authorized to run this web service method', 401);
         }
     }
-
 }

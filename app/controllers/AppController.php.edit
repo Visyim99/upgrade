@@ -78,20 +78,20 @@ class AppController extends BaseController {
         /* The following are simple functions that return the different pages of the app */
         public function loginTemplate()
 	{
-            $data = Array();
+            $data = [];
             $data['accttypescaveat'] = Config::get('app.accttypescaveat');
             return Response::view('applogin', $data);
 	}
         
         public function infotemplate()
 	{
-            $data = Array();
+            $data = [];
             $data['countyname'] = Config::get('app.countyname');
             return Response::view('info', $data);
 	}
         
         public function doneTemplate() {
-            $data = Array();
+            $data = [];
             return Response::view('appdone', $data);
         }
 }
