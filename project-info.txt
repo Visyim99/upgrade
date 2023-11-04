@@ -1,0 +1,30 @@
+JS MVC framework: AngularJS
+JS UI: JQueryUI
+JS Util: JQuery
+PHP MVC framework: Laravel
+
+ppapp.js contains the functionality for the front end. It calls web services that are defined in routes.php in the Laravel framework.
+
+- The app doesn't hit the live data. The changes are written to a table on the web server, then some programs are scheduled to run nightly to update things.
+- Nightly Process (Run on county server):
+	- Run Dave's Update.exe. This updates the tables that the website uses to display the user's current information.
+	- Run Danny Britt's .bat script. This script does several things:
+		- Backs up tables created by previous exe.
+		- Uploads backup to rsync
+		- Calls a url on the online dec site
+			- Gets the backup from rsync and restores it
+			- Iterates through changes that haven't been marked as "done"
+				- Gets corresponding user for change record, if they have a ProcessedDate, mark the change record as "done"
+			- Backs up changes table and uploads to rsync
+		- Gets changes backup from rsync and restores to local db
+	- Run Dave's Update2.exe. This processes the changes and creates the online dec images
+
+
+NOTE: This app requires that browscap be configured in php.ini. This allows the app to detect browser versions since this site does not work on IE 7 or lower.
+
+Copy full_php_browscap.ini to php directory. EX: *\PHP\v5.6\extras\full_php_browscap.ini
+
+Uncomment browscap line from php.ini. Add location to browscap file. Ex: browscap = "C:\Program Files (x86)\PHP\v5.6\extras\full_php_browscap.ini"
+
+
+This app also requires URL Rewrite. Install via web platform installer in IIS

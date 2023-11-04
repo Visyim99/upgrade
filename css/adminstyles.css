@@ -1,0 +1,39 @@
+/* 
+    Document   : styles
+    Created on : Dec 5, 2013, 12:04:48 PM
+    Author     : Dan
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+* { 
+    padding: 0px;
+    margin: 0px;
+    font-size: 1em;
+}
+
+body {
+    /*background: #ccffff;*/
+    background: #FFFFFF;
+}
+
+.acct {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+table {
+    margin-left: 20px;
+}
+
+tr:nth-child(even) {
+    background: #e4e4e4;
+}
+
+td {
+    padding: 2px 5px 2px 5px;
+}
+
+.strong {
+    font-weight: bold;
+}
